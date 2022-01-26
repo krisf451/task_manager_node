@@ -19,20 +19,30 @@ const createTask = async (req, res, next) => {
 const getTaskById = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const [task] = await Task.find().where({ _id: id });
+    const task = await Task.findOne({ _id: id });
+    if (!task) {
+      next({ status: 404, message: `No task with id: ${id} was found` });
+    }
     res.status(201).json({ task });
   } catch (error) {
-    next(error);
+    next({
+      status: 500,
+      message: "That ID does not exist, something went wrong",
+    });
   }
 };
 const updateTask = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const [updatedTask] = await Task.find().where({ _id: id });
-    updatedTask.name = req.body.name;
-    updatedTask.completed = req.body.completed;
-    await updatedTask.save();
-    res.status(201).json({ updatedTask });
+    const task = await Task.findOneAndUpdate({ _id: id }, req.body, {
+      new: true,
+      runValidators: true,
+      useFindAndModify: false,
+    });
+    if (!task) {
+      next({ status: 404, message: `No task with id: ${id} was found` });
+    }
+    res.status(201).json({ task });
   } catch (error) {
     next(error);
   }
@@ -40,9 +50,16 @@ const updateTask = async (req, res, next) => {
 const deleteTask = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const [deletedTask] = await Task.find().where({ _id: id });
-    await Task.deleteOne({ _id: id });
-    res.status(201).json({ message: "Successful Deletion", deletedTask });
+    const task = await Task.findOneAndDelete(
+      { _id: id },
+      {
+        useFindAndModify: false,
+      }
+    );
+    if (!task) {
+      next({ status: 404, message: `No task with id: ${id} was found` });
+    }
+    res.status(200).json({ status: "Successful Deletion", task: null });
   } catch (error) {
     next(error);
   }
