@@ -19,17 +19,33 @@ const createTask = async (req, res, next) => {
 const getTaskById = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const taskById = await Task.find().where({ _id: id });
-    res.status(201).json({ taskById });
+    const [task] = await Task.find().where({ _id: id });
+    res.status(201).json({ task });
   } catch (error) {
     next(error);
   }
 };
-const updateTask = (req, res) => {
-  res.send("update task");
+const updateTask = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const [updatedTask] = await Task.find().where({ _id: id });
+    updatedTask.name = req.body.name;
+    updatedTask.completed = req.body.completed;
+    await updatedTask.save();
+    res.status(201).json({ updatedTask });
+  } catch (error) {
+    next(error);
+  }
 };
-const deleteTask = (req, res) => {
-  res.send("delete task");
+const deleteTask = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const [deletedTask] = await Task.find().where({ _id: id });
+    await Task.deleteOne({ _id: id });
+    res.status(201).json({ message: "Successful Deletion", deletedTask });
+  } catch (error) {
+    next(error);
+  }
 };
 
 module.exports = {
