@@ -3,6 +3,8 @@ const app = express();
 const taskRoutes = require("./routes/tasks");
 const connectDB = require("./db/connect");
 require("dotenv").config();
+const notFound = require("./middleware/not-found");
+const errorHandlerMiddleware = require("./middleware/error-handler");
 
 //middlware
 app.use(express.static("./public"));
@@ -10,6 +12,9 @@ app.use(express.json());
 
 //routes
 app.use("/api/v1/tasks", taskRoutes);
+
+app.use(notFound);
+app.use(errorHandlerMiddleware);
 
 const PORT = process.env.PORT || 9000;
 
@@ -25,10 +30,3 @@ const start = async () => {
 };
 
 start();
-
-app.use((err, req, res, next) => {
-  // eslint-disable-line
-  res.status(err.status || 500).json({
-    message: err.message,
-  });
-});
